@@ -113,10 +113,20 @@ func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
 	myPuzzle.puzzle[rowNum][colNum].valueKnown = true
 }
 
-func (myPuzzle *Puzzle) insertRow(row string, rowNum int) {
+func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) (int, error) {
+	if !(myPuzzle.puzzle[rowNum][colNum].valueKnown) {
+		return -1, fmt.Errorf("cell not set.")
+	}
+
+	return myPuzzle.puzzle[rowNum][colNum].value, nil
+}
+
+func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
 	for colNum, char := range row {
-		value := int(char)
-		myPuzzle.setValue(rowNum, colNum, value)
+		value := int(char-'0')
+		if value != 0 {
+			myPuzzle.setValue(rowNum, colNum, value)
+		}
 	}
 }
 
@@ -178,7 +188,7 @@ func puzzleFromFile(filename string) *Puzzle {
 			log.Fatal(err)
 		}
 
-		myPuzzle.insertRow(row, i)
+		myPuzzle.insertRow(i, row)
 		i++
 	}
 	

@@ -131,16 +131,38 @@ func TestValidateRowFormat(t *testing.T) {
 	}
 }
 
-/*
+func TestGetValue(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.setValue(3, 2, 8)
+	value, ok := myPuzzle.getValue(3, 2)
+	if ok != nil {
+		t.Error("")
+	}
+
+	if value != 8 {
+		t.Error()
+	}
+
+	value, ok = myPuzzle.getValue(3, 3)
+	if ok == nil {
+		t.Error()
+	}
+}
+
+func TestInsertRow(t *testing.T) {
+	myPuzzle := newPuzzle()
+	row := "123456789"
+	myPuzzle.insertRow(1, row)
+}
+
 func TestPuzzleFromFile(t *testing.T) {
 	puzzleOne := newPuzzle()
-	puzzleOne.puzzle[3][2].value = 2
+	puzzleOne.setValue(2, 1, 2)
 	puzzleTwo := puzzleFromFile("almost_empty.txt")
 	if !(reflect.DeepEqual(puzzleOne, puzzleTwo)) {
-		t.Error("Puzzles should be equal.")
+		t.Error("Puzzles should be equal.", puzzleOne, puzzleTwo)
 	}
 	
 	
 }
 
-*/
