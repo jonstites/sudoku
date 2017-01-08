@@ -6,26 +6,17 @@ import (
 )
 
 
-func TestUnion(t *testing.T) {
-	value1 := valueSet{1: true, 2:true}
-	value2 := valueSet{1: true, 3:true}
-	value3 := union(value1, value2)
-	if !(reflect.DeepEqual(value3, valueSet{1:true, 2:true, 3:true})) {
-		t.Error("Union of {1,2} and {1,3} should be {1,2,3}")
-	}
-}
-
-func TestIntersection(t *testing.T) {
-	value1 := valueSet{1: true, 2:true}
-	value2 := valueSet{1: true, 3:true}
-	value3 := intersection(value1, value2)
-	if !(reflect.DeepEqual(value3, valueSet{1:true})) {
-		t.Error("Intersection of {1,2} and {1,3} should be {1}")
+func TestValueSet(t *testing.T) {
+	value := newValueSet(1, 2, 7)
+	var expected valueSet
+	expected = 67
+	if value != expected {
+		t.Error("ValueSet of 1,2,7 should be", expected, "not: ", value)
 	}
 }
 
 func TestCellPrint(t *testing.T) {
-	myCell := Cell{3, valueSet{}, true}
+	myCell := Cell{3, 0, true}
 	if !(myCell.String() == "3") {
 		t.Error("Cell{3} should print as 3.")
 	}
@@ -39,14 +30,36 @@ func TestCellPrintEmpty(t *testing.T) {
 }
 
 func TestCellOptions(t *testing.T) {
-	myCell := Cell{3, map[int]bool{3: true, 5: true}, true}
-	if !(myCell.valueOptions[3]) {
-		t.Error("Cell should be allowed to have value 3")
+	myCell := Cell{3, newValueSet(3, 5), true}
+	hasOptions, err := myCell.hasOptions(3, 5)
+	if err != nil {
+		t.Error("3 and 5 should be acceptable sudoku values")
+	}
+	if !hasOptions {
+		t.Error("Cell should be allowed to have values 3 and 5")
+	}
+	var i uint
+	for i = 1; i <= 9; i++ {
+		hasOptions, err = myCell.hasOptions(i)
+		if err != nil {
+			t.Error(i, " should be an acceptable sudoku value.")
+		}
+		if i != 3 && i != 5 && hasOptions {
+			t.Error("Cell of 3, 5 should not have option ", i)
+		}
+	}
+}
+
+func TestCellOptionErr(t *testing.T) {
+	myCell := Cell{3, newValueSet(3, 5), true}
+	_, err := myCell.hasOptions(3, 5, 7, 11)
+	if err != nil {
+		t.Error("Should raise error when testing for value 11")
 	}
 }
 
 func TestCellNumOptions(t *testing.T) {
-	myCell := Cell{3, map[int]bool{3: true, 5: true}, true}
+	myCell := Cell{3, newValueSet(3, 5), true}
 	if (myCell.numValueOptions() != 2) {
 		t.Error("Cell should have 2 options")
 	}
@@ -55,8 +68,10 @@ func TestCellNumOptions(t *testing.T) {
 
 func TestCellValueOptions(t *testing.T) {
 	myCell := newCell()
-	for i := 1; i <= 9; i++ {
-		if !(myCell.valueOptions[i]) {
+	var i uint
+	for i = 1; i <= 9; i++ {
+		hasOption, _ := myCell.hasOptions(i)
+		if !(hasOption) {
 			t.Error("Cell should have options 1-9")
 		}
 	}
@@ -158,7 +173,7 @@ func TestInsertRow(t *testing.T) {
 func TestPuzzleFromFile(t *testing.T) {
 	puzzleOne := newPuzzle()
 	puzzleOne.setValue(2, 1, 2)
-	puzzleTwo := puzzleFromFile("almost_empty.txt")
+	puzzleTwo := puzzleFromFile("almost_empty_test.txt")
 	if !(reflect.DeepEqual(puzzleOne, puzzleTwo)) {
 		t.Error("Puzzles should be equal.", puzzleOne, puzzleTwo)
 	}

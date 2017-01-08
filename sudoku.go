@@ -16,42 +16,14 @@ func Max(x, y int) int {
     return y
 }
 
-
-// Implement our own sets
-type valueSet map[int]bool
+type valueSet int
+const fullSet = 511
 
 // Initialize a valueSet with 1-9
-func newValueSet() valueSet {
-	valueMap := valueSet{}
-	for i := 1; i <= 9; i++ {
-		valueMap[i] = true
-	}
-	return valueMap
-}
-
-// Union of two valueSets
-func union(value1 valueSet, value2 valueSet) valueSet {
-	myValueSet := valueSet{}
-	for key, value := range value1 {
-		if value {
-			myValueSet[key] = value
-		}
-	}
-	for key, value := range value2 {
-		if value {
-			myValueSet[key] = value
-		}
-	}
-	return myValueSet
-}
-
-// Intersection of two valueSets
-func intersection(value1 valueSet, value2 valueSet) valueSet {
-	myValueSet := valueSet{}
-	for key, value := range value1 {
-		if (value && value2[key]) {
-			myValueSet[key] = value
-		}
+func newValueSet(values ...uint) valueSet {
+	var myValueSet valueSet
+	for _, value := range values {
+		myValueSet += 1 << (value - 1)
 	}
 	return myValueSet
 }
@@ -61,22 +33,37 @@ type Cell struct {
 	// The determined value (meaningless if valueKnown is false)
 	value int
 	// Stores which values the cell is allowed to be (meaningless if valueKnown is true)
-	valueOptions map[int]bool
+	valueOptions valueSet
 	// Whether the value is known
 	valueKnown bool
 }
 
 func newCell() *Cell {
 	cell := new(Cell)
-	cell.valueOptions = newValueSet()
+	cell.valueOptions = fullSet
 	return cell
 }
 
+func (c *Cell) hasOptions(options ...uint) (bool, error) {
+	cellOptions := c.valueOptions
+	for _, option := range options {
+		if option < 1 || option > 9 {
+			return false, fmt.Errorf("Not a valid sudoku value: ", option)
+		}
+
+		// check if bit is set
+		if (cellOptions >> (option - 1) & 1) != 1 {
+			return false, nil
+		}
+	}		
+	return true, nil
+}
+		
 // Returns the number of values the cell is allowed to be in
 func (c *Cell) numValueOptions() int {
 	num := 0
-	for _, value := range c.valueOptions {
-		if value {
+	for valueOptions := c.valueOptions; valueOptions != 0; valueOptions = valueOptions >> 1 {
+		if (valueOptions & 1) == 1 {
 			num += 1
 		}
 	}
