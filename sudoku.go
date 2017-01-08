@@ -44,7 +44,7 @@ func (c *Cell) hasOptions(options ...uint) (bool, error) {
 			return false, fmt.Errorf("Not a valid sudoku value: ", option)
 		}
 
-		// check if bit is set
+		// check if bit is unset
 		if (cellOptions >> (option - 1) & 1) != 1 {
 			return false, nil
 		}
@@ -66,6 +66,18 @@ func (c *Cell) numValueOptions() int {
 func (c *Cell) setValue(value int) {
 	c.value = value
 	c.valueKnown = true
+}
+
+func (c *Cell) chooseValue() int {
+	
+	i := 1
+	for valueOptions := c.valueOptions; valueOptions != 0; valueOptions = valueOptions >> 1 {
+		if (valueOptions & 1) == 1 {
+			return i
+		}
+		i++
+	}
+	return i
 }
 
 // Just print the value of a Cell f
@@ -104,7 +116,7 @@ func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
 
 func (myPuzzle *Puzzle) setValueOptions(rowNum int, colNum int, valueOptions valueSet) {
 	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.valueOptions = valueOptions
+	myCell.valueOptions = valueOptions & myCell.valueOptions
 }
 
 func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) (int, error) {
@@ -134,7 +146,7 @@ func calcValueOptions(cells []Cell) (valueSet, error) {
 
 
 func (myPuzzle *Puzzle) updateRow(rowNum int) error {
-	cells := make([]Cell, 9)
+	cells := make([]Cell, len(myPuzzle.puzzle))
 	for colNum, cell := range myPuzzle.puzzle[rowNum] {
 		cells[colNum] = cell
 	}
@@ -149,7 +161,7 @@ func (myPuzzle *Puzzle) updateRow(rowNum int) error {
 }
 
 func (myPuzzle *Puzzle) updateCol(colNum int) error {
-	cells := make([]Cell, 9)
+	cells := make([]Cell, len(myPuzzle.puzzle))
 	for rowNum, row := range myPuzzle.puzzle {
 		cells[rowNum] = row[colNum]
 	}
@@ -160,6 +172,101 @@ func (myPuzzle *Puzzle) updateCol(colNum int) error {
 	}
 
 	return err
+}
+
+
+func (myPuzzle *Puzzle) updateBlock(rowNum int, colNum int) error {
+	cells := make([]Cell, len(myPuzzle.puzzle))
+	blockRow := rowNum - (rowNum % 3)
+	blockCol := colNum - (colNum % 3)
+	i := 0
+	for rowIndex := blockRow; rowIndex < blockRow + 3; rowIndex += 1 {
+		for colIndex := blockCol; colIndex < blockCol + 3; colIndex += 1 {
+			cells[i] = *myPuzzle.getCell(rowIndex, colIndex)
+			i++
+		}
+	}
+
+	valueOptions, err := calcValueOptions(cells)
+
+	for rowIndex := blockRow; rowIndex < blockRow + 3; rowIndex += 1 {
+		for colIndex := blockCol; colIndex < blockCol + 3; colIndex += 1 {
+			myPuzzle.setValueOptions(rowIndex, colIndex, valueOptions)
+		}
+	}
+	return err
+		
+}
+
+func (myPuzzle *Puzzle) updateAll() error {
+	for i := 0; i < 9; i++ {
+		err := myPuzzle.updateRow(i)
+		if err != nil {
+			return err
+		}
+		err = myPuzzle.updateCol(i)
+		if err != nil {
+			return err
+		}
+	}
+
+	for i := 0; i < 9; i = i + 3 {
+		for j := 0; j < 9; j = j + 3 {
+			err := myPuzzle.updateBlock(i, j)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (myPuzzle *Puzzle) fillOneCell() error {
+	bestRowNum := 0
+	bestColNum := 0
+	bestNumOptions := 10
+	bestCellValue := 0
+	isComplete := true
+
+	for rowNum, row := range myPuzzle.puzzle {
+		for colNum, cell := range row {
+			if cell.valueKnown {
+				continue
+			}
+
+			isComplete = false
+			numOptions := cell.numValueOptions()
+
+			if (numOptions >= bestNumOptions) {
+				continue
+			}
+
+			bestNumOptions = numOptions
+			bestRowNum = rowNum
+			bestColNum = colNum
+			bestCellValue = cell.chooseValue()
+		}
+	}
+
+	if isComplete {
+		return fmt.Errorf("Can't fill a cell: sudoku complete.")
+	}
+
+	// if stack is empty... (TODO)
+	if bestNumOptions == 0 {
+		return fmt.Errorf("This sudoku puzzle cannot be solved.")
+	}
+
+	if bestNumOptions > 1 {
+		return fmt.Errorf("Guessing not implemented.")
+	}
+
+	myPuzzle.setValue(bestRowNum, bestColNum, bestCellValue)
+	myPuzzle.updateRow(bestRowNum)
+	myPuzzle.updateCol(bestColNum)
+	myPuzzle.updateBlock(bestRowNum, bestColNum)
+	return nil
 }
 
 func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
@@ -237,6 +344,7 @@ func puzzleFromFile(filename string) *Puzzle {
 		log.Fatal(err)
 	}
 
+	myPuzzle.updateAll()
 	return myPuzzle
 }
 

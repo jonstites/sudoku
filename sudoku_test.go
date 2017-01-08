@@ -77,6 +77,16 @@ func TestCellValueOptions(t *testing.T) {
 	}
 }
 
+func TestCellChooseValue(t *testing.T) {
+	myCell := newCell()
+	myCell.valueOptions = 28
+	value := myCell.chooseValue()
+	expected := 3
+	if value != expected {
+		t.Error("Expected: ", expected, " got: ", value)
+	}
+}
+
 func TestPuzzleNumCellCols(t *testing.T) {
 	myPuzzle := newPuzzle()
 	if (len(myPuzzle.puzzle) != 9) {
@@ -220,6 +230,43 @@ func TestUpdateCol(t *testing.T) {
 	}
 }
 
+func TestUpdateBlock(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.setValue(1, 7, 8)
+	myPuzzle.updateBlock(1, 7)
+	checkCell := myPuzzle.getCell(2, 6)
+	hasOption, _ := checkCell.hasOptions(8)
+	if hasOption {
+		t.Error("Cell should not have option 8 if 8 already in block: ",
+		checkCell.valueOptions)
+	}
+}
+
+func TestUpdateAll(t *testing.T) {
+	myPuzzle := puzzleFromFile("almost_empty_test.txt")
+	myPuzzle.updateAll()
+	var cells [3]Cell
+	cells[0] = *myPuzzle.getCell(0, 1)
+	cells[1] = *myPuzzle.getCell(2, 6)
+	cells[2] = *myPuzzle.getCell(8, 1)
+
+	for i, cell := range cells {
+		hasOption, _ := cell.hasOptions(2)
+		if hasOption {
+			t.Error("Cell ", i, " should not have option 2: ", cell)
+		}
+	}
+}
+
+func TestFillOneCell(t *testing.T) {
+	myPuzzle := puzzleFromFile("almost_complete_test.txt")
+	myPuzzle.fillOneCell()
+	myCell := myPuzzle.getCell(4, 7)
+	if myCell.value != 3 {
+		t.Error("Cell should have 3 at 4, 7, not: ", myCell.value)
+	}
+}
+
 func TestInsertRow(t *testing.T) {
 	myPuzzle := newPuzzle()
 	row := "123456789"
@@ -229,6 +276,7 @@ func TestInsertRow(t *testing.T) {
 func TestPuzzleFromFile(t *testing.T) {
 	puzzleOne := newPuzzle()
 	puzzleOne.setValue(2, 1, 2)
+	puzzleOne.updateAll()
 	puzzleTwo := puzzleFromFile("almost_empty_test.txt")
 	if !(reflect.DeepEqual(puzzleOne, puzzleTwo)) {
 		t.Error("Puzzles should be equal.", puzzleOne, puzzleTwo)
