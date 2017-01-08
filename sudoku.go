@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-func Max(x, y int) int {
-    if x > y {
-        return x
-    }
-    return y
-}
-
 type valueSet int
 const fullSet = 511
 
