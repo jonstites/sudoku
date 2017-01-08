@@ -258,6 +258,19 @@ func TestUpdateAll(t *testing.T) {
 	}
 }
 
+func TestPuzzleComplete(t *testing.T) {
+	myPuzzle := puzzleFromFile("almost_complete_test.txt")
+	if myPuzzle.isComplete() {
+		t.Error("Puzzle should not be considered complete: ", myPuzzle)
+	}
+
+	myPuzzle.fillOneCell()
+	if !(myPuzzle.isComplete()) {
+		t.Error("Puzzle should be considered complete: ", myPuzzle)
+	}
+	
+}
+
 func TestFillOneCell(t *testing.T) {
 	myPuzzle := puzzleFromFile("almost_complete_test.txt")
 	myPuzzle.fillOneCell()

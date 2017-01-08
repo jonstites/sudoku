@@ -269,6 +269,17 @@ func (myPuzzle *Puzzle) fillOneCell() error {
 	return nil
 }
 
+func (myPuzzle *Puzzle) isComplete() bool {
+	for _, row := range myPuzzle.puzzle {
+		for _, cell := range row {
+			if !cell.valueKnown {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
 	for colNum, char := range row {
 		value := int(char-'0')
