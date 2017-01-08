@@ -269,6 +269,16 @@ func (myPuzzle *Puzzle) fillOneCell() error {
 	return nil
 }
 
+func (myPuzzle *Puzzle) fillAllCells() error {
+	for !(myPuzzle.isComplete()) {
+		err := myPuzzle.fillOneCell() 
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (myPuzzle *Puzzle) isComplete() bool {
 	for _, row := range myPuzzle.puzzle {
 		for _, cell := range row {

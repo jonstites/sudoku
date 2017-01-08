@@ -275,8 +275,19 @@ func TestFillOneCell(t *testing.T) {
 	myPuzzle := puzzleFromFile("almost_complete_test.txt")
 	myPuzzle.fillOneCell()
 	myCell := myPuzzle.getCell(4, 7)
-	if myCell.value != 3 {
+	if myCell.value != 5 {
 		t.Error("Cell should have 3 at 4, 7, not: ", myCell.value)
+	}
+}
+
+func TestFillAllCell(t *testing.T) {
+	myPuzzle := puzzleFromFile("row_missing_test.txt")
+	err := myPuzzle.fillAllCells()
+	if err != nil {
+		t.Error(err)
+	}
+	if !(myPuzzle.isComplete()) {
+		t.Error("Puzzle should have been completed: ", myPuzzle)
 	}
 }
 
