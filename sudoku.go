@@ -12,7 +12,7 @@ import (
 type valueSet int
 const fullSet = 511
 
-// Initialize a valueSet with 1-9
+// Initialize a valueSet with given values
 func newValueSet(values ...uint) valueSet {
 	var myValueSet valueSet
 	for _, value := range values {
@@ -63,6 +63,11 @@ func (c *Cell) numValueOptions() int {
 	return num
 }
 
+func (c *Cell) setValue(value int) {
+	c.value = value
+	c.valueKnown = true
+}
+
 // Just print the value of a Cell f
 func (c *Cell) String() string {
 	valueString := strconv.Itoa(c.value)
@@ -88,17 +93,73 @@ func newPuzzle() *Puzzle {
 	return myPuzzle
 }
 
+func (myPuzzle *Puzzle) getCell(rowNum int, colNum int) *Cell {
+	return &myPuzzle.puzzle[rowNum][colNum]
+}
+
 func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
-	myPuzzle.puzzle[rowNum][colNum].value = value
-	myPuzzle.puzzle[rowNum][colNum].valueKnown = true
+	myCell := myPuzzle.getCell(rowNum, colNum)
+	myCell.setValue(value)
+}
+
+func (myPuzzle *Puzzle) setValueOptions(rowNum int, colNum int, valueOptions valueSet) {
+	myCell := myPuzzle.getCell(rowNum, colNum)
+	myCell.valueOptions = valueOptions
 }
 
 func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) (int, error) {
-	if !(myPuzzle.puzzle[rowNum][colNum].valueKnown) {
+	myCell := myPuzzle.getCell(rowNum, colNum)
+	if !(myCell.valueKnown) {
 		return -1, fmt.Errorf("cell not set.")
 	}
+	return myCell.value, nil
+}
 
-	return myPuzzle.puzzle[rowNum][colNum].value, nil
+
+func calcValueOptions(cells []Cell) (valueSet, error) {
+	var valueOptions valueSet
+	valueOptions = fullSet
+	for _, cell := range cells {
+		if cell.valueKnown {
+			valueOptions -= 1 << (uint(cell.value) - 1)
+		}
+	}
+
+	if (valueOptions < 0) || (valueOptions > fullSet) {
+		return valueOptions, fmt.Errorf("Row options out of range: ", valueOptions)
+	}
+
+	return valueOptions, nil
+}
+
+
+func (myPuzzle *Puzzle) updateRow(rowNum int) error {
+	cells := make([]Cell, 9)
+	for colNum, cell := range myPuzzle.puzzle[rowNum] {
+		cells[colNum] = cell
+	}
+
+	valueOptions, err := calcValueOptions(cells)
+
+	for colNum, _ := range myPuzzle.puzzle[rowNum] {
+		myPuzzle.setValueOptions(rowNum, colNum, valueOptions)
+	}
+	
+	return err
+}
+
+func (myPuzzle *Puzzle) updateCol(colNum int) error {
+	cells := make([]Cell, 9)
+	for rowNum, row := range myPuzzle.puzzle {
+		cells[rowNum] = row[colNum]
+	}
+
+	valueOptions, err := calcValueOptions(cells)
+	for rowNum, _ := range myPuzzle.puzzle {
+		myPuzzle.setValueOptions(rowNum, colNum, valueOptions)
+	}
+
+	return err
 }
 
 func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
@@ -175,6 +236,7 @@ func puzzleFromFile(filename string) *Puzzle {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+
 	return myPuzzle
 }
 

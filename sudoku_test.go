@@ -91,9 +91,20 @@ func TestPuzzleNumCellRows(t *testing.T) {
 	}
 }
 
+func TestPuzzleGetCell(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.puzzle[3][5].value = 5
+	myCell := myPuzzle.getCell(3, 5)
+	if myCell.value != 5 {
+		t.Error("Function getCell should be getting a cell with value of 5.")
+	}
+}
+
+
 func TestPuzzleCellNumOptions(t *testing.T) {
 	myPuzzle := newPuzzle()
-	numOptions := myPuzzle.puzzle[3][5].numValueOptions()
+	myCell := myPuzzle.getCell(3, 5)
+	numOptions := myCell.numValueOptions()
 	if (numOptions != 9) {
 		t.Error("Puzzle cells should have 9 options, not ", numOptions)
 	}
@@ -102,13 +113,23 @@ func TestPuzzleCellNumOptions(t *testing.T) {
 func TestPuzzleSetValue(t *testing.T) {
 	myPuzzle := newPuzzle()
 	myPuzzle.setValue(3, 2, 8)
-	if (myPuzzle.puzzle[3][2].value != 8) {
+	myCell := myPuzzle.getCell(3, 2)
+	if (myCell.value != 8) {
 		t.Error("Puzzle should have 8 set at 3,2.")
 	}
-	if (myPuzzle.puzzle[3][2].valueKnown != true) {
+	if (myCell.valueKnown != true) {
 		t.Error("Puzzle should be set at 3,2.")
 	}
+}
 
+
+func TestPuzzleSetValueOptions(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.setValueOptions(3, 2, 8)
+	myCell := myPuzzle.getCell(3, 2)
+	if (myCell.valueOptions != 8) {
+		t.Error("Puzzle should have valueOption '8' at 3,2.")
+	}
 }
 
 func TestIsNumeric(t *testing.T) {
@@ -161,6 +182,41 @@ func TestGetValue(t *testing.T) {
 	value, ok = myPuzzle.getValue(3, 3)
 	if ok == nil {
 		t.Error()
+	}
+}
+
+func TestCalcValueOptions(t *testing.T) {
+	myCell := new(Cell)
+	myCell.setValue(3)
+	cells := []Cell{ *myCell }
+	valueOption, _ := calcValueOptions(cells)
+	if valueOption != 507 {
+		t.Error("Value option should be ", 507, " not ", valueOption)
+	}
+
+}
+
+func TestUpdateRow(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.setValue(1, 2, 8)
+	myPuzzle.updateRow(1)
+	checkCell := myPuzzle.getCell(1, 5)
+	hasOption, _ := checkCell.hasOptions(8)
+	if hasOption {
+		t.Error("Cell should not have option 8 if 8 already in row: ",
+		checkCell.valueOptions)
+	}
+}
+
+func TestUpdateCol(t *testing.T) {
+	myPuzzle := newPuzzle()
+	myPuzzle.setValue(1, 2, 8)
+	myPuzzle.updateCol(2)
+	checkCell := myPuzzle.getCell(5, 2)
+	hasOption, _ := checkCell.hasOptions(8)
+	if hasOption {
+		t.Error("Cell should not have option 8 if 8 already in col: ",
+		checkCell.valueOptions)
 	}
 }
 
