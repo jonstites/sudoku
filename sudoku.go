@@ -1,7 +1,8 @@
 package sudoku
-
+/*
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,88 +10,10 @@ import (
 	"strings"
 )
 
-type valueSet int
-const fullSet = 511
-
-// Initialize a valueSet with given values
-func newValueSet(values ...uint) valueSet {
-	var myValueSet valueSet
-	for _, value := range values {
-		myValueSet += 1 << (value - 1)
-	}
-	return myValueSet
-}
-
-// Represents one square of a Sudoku puzzle.
-type Cell struct {
-	// The determined value (meaningless if valueKnown is false)
-	value int
-	// Stores which values the cell is allowed to be (meaningless if valueKnown is true)
-	valueOptions valueSet
-	// Whether the value is known
-	valueKnown bool
-}
-
-func newCell() *Cell {
-	cell := new(Cell)
-	cell.valueOptions = fullSet
-	return cell
-}
-
-func (c *Cell) hasOptions(options ...uint) (bool, error) {
-	cellOptions := c.valueOptions
-	for _, option := range options {
-		if option < 1 || option > 9 {
-			return false, fmt.Errorf("Not a valid sudoku value: ", option)
-		}
-
-		// check if bit is unset
-		if (cellOptions >> (option - 1) & 1) != 1 {
-			return false, nil
-		}
-	}		
-	return true, nil
-}
-		
-// Returns the number of values the cell is allowed to be in
-func (c *Cell) numValueOptions() int {
-	num := 0
-	for valueOptions := c.valueOptions; valueOptions != 0; valueOptions = valueOptions >> 1 {
-		if (valueOptions & 1) == 1 {
-			num += 1
-		}
-	}
-	return num
-}
-
-func (c *Cell) setValue(value int) {
-	c.value = value
-	c.valueKnown = true
-}
-
-func (c *Cell) chooseValue() int {
-	
-	i := 1
-	for valueOptions := c.valueOptions; valueOptions != 0; valueOptions = valueOptions >> 1 {
-		if (valueOptions & 1) == 1 {
-			return i
-		}
-		i++
-	}
-	return i
-}
-
-// Just print the value of a Cell f
-func (c *Cell) String() string {
-	valueString := strconv.Itoa(c.value)
-	if !(c.valueKnown) {
-		valueString = "0"
-	}
-	return valueString
-}
 
 type Puzzle struct {
 	puzzle [][]Cell
+	guesses [][]int
 }
 
 func newPuzzle() *Puzzle {
@@ -111,12 +34,18 @@ func (myPuzzle *Puzzle) getCell(rowNum int, colNum int) *Cell {
 
 func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
 	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.setValue(value)
+	myCell.setValue(value, len(myPuzzle.guesses))
 }
 
 func (myPuzzle *Puzzle) setValueOptions(rowNum int, colNum int, valueOptions valueSet) {
 	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.valueOptions = valueOptions & myCell.valueOptions
+	if rowNum == 1 && colNum == 0 {
+		fmt.Println("1, 0: ", valueOptions, myCell.guesses, myCell.valueOptions,
+			(valueOptions &^ myCell.guesses) & myCell.valueOptions)
+	}
+
+	myCell.valueOptions = (valueOptions &^ myCell.guesses) & myCell.valueOptions
+	
 }
 
 func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) (int, error) {
@@ -199,6 +128,17 @@ func (myPuzzle *Puzzle) updateBlock(rowNum int, colNum int) error {
 }
 
 func (myPuzzle *Puzzle) updateAll() error {
+	fmt.Println("Updating all")
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			myCell := myPuzzle.getCell(i, j)
+			if myCell.guessNum > len(myPuzzle.guesses) {
+				myPuzzle.puzzle[i][j].valueKnown = false
+				myPuzzle.puzzle[i][j].valueOptions = fullSet
+			}
+		}
+	}
+	
 	for i := 0; i < 9; i++ {
 		err := myPuzzle.updateRow(i)
 		if err != nil {
@@ -253,41 +193,80 @@ func (myPuzzle *Puzzle) fillOneCell() error {
 		return fmt.Errorf("Can't fill a cell: sudoku complete.")
 	}
 
-	// if stack is empty... (TODO)
+
 	if bestNumOptions == 0 {
-		return fmt.Errorf("This sudoku puzzle cannot be solved.")
+		guessSize := len(myPuzzle.guesses)
+		fmt.Println("Problem cell is: ", bestRowNum, bestColNum)
+		if guessSize == 0 {
+			return fmt.Errorf("This sudoku puzzle cannot be solved.",
+			myPuzzle.guesses, "\n", myPuzzle)
+		}
+
+		fmt.Println("Removed a guess at: ", myPuzzle.guesses[guessSize - 1])
+		fmt.Println("Was:\n", myPuzzle)
+		myPuzzle.guesses = myPuzzle.guesses[:guessSize - 1]
+		myPuzzle.updateAll()
+		fmt.Println("Is:\n", myPuzzle)
 	}
+	
 
 	if bestNumOptions > 1 {
-		return fmt.Errorf("Guessing not implemented.")
+		coordinates := []int {bestRowNum, bestColNum}
+
+
+		myPuzzle.guesses = append(myPuzzle.guesses, coordinates)
+		myPuzzle.addGuess(bestRowNum, bestColNum, bestCellValue)
+		fmt.Println("Made a guess at: ", bestRowNum, bestColNum, bestCellValue)
+		fmt.Println("Was:\n", myPuzzle)
 	}
 
 	myPuzzle.setValue(bestRowNum, bestColNum, bestCellValue)
 	myPuzzle.updateRow(bestRowNum)
 	myPuzzle.updateCol(bestColNum)
 	myPuzzle.updateBlock(bestRowNum, bestColNum)
+	if bestNumOptions > 1 {
+		fmt.Println("Is:\n", myPuzzle)
+	}
 	return nil
 }
 
+func (myPuzzle *Puzzle) addGuess(rowNum int, colNum int, value int) {
+	myCell := myPuzzle.getCell(rowNum, colNum)
+	myCell.addGuess(value)
+}
+
 func (myPuzzle *Puzzle) fillAllCells() error {
-	for !(myPuzzle.isComplete()) {
+	isComplete, err := myPuzzle.isComplete()
+	if err != nil {
+		return err
+	}
+	for !(isComplete) {
 		err := myPuzzle.fillOneCell() 
 		if err != nil {
 			return err
 		}
+		isComplete, err = myPuzzle.isComplete()
+		if err != nil {
+			return err
+		}
 	}
+	isComplete, _ = myPuzzle.isComplete()
+	fmt.Println(isComplete)
 	return nil
 }
 
-func (myPuzzle *Puzzle) isComplete() bool {
+func (myPuzzle *Puzzle) isComplete() (bool, error) {
 	for _, row := range myPuzzle.puzzle {
 		for _, cell := range row {
 			if !cell.valueKnown {
-				return false
+				return false, nil
+			}
+			if cell.value == 0 {
+				return false, fmt.Errorf("Error: Sudoku solution contains a zero.")
 			}
 		}
 	}
-	return true
+	return true, nil
 }
 
 func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
@@ -370,5 +349,13 @@ func puzzleFromFile(filename string) *Puzzle {
 }
 
 func main() {
-	fmt.Printf("hello, world\n")
+	sudokuFile := flag.String("filename", "", "File of sudoku puzzle to solve.")
+	flag.Parse()
+	myPuzzle := puzzleFromFile(*sudokuFile)
+	err := myPuzzle.fillAllCells()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(myPuzzle)
 }
+*/
