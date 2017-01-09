@@ -1,58 +1,8 @@
 package sudoku
 
 import (
-	"testing"
+
 )
-
-
-
-func TestGridNumCells(t *testing.T) {
-	myGrid := newGrid()
-	got := len(myGrid.grid)
-	expected := 9
-		
-	if got != expected {
-		t.Errorf("Expected %d rows, not %d.",
-			expected, got)
-	}
-
-	for _, row := range myGrid.grid {
-		got = len(row)
-		if (got != expected) {
-			t.Error("Expected %d columns, not %d.",
-				expected, got)
-		}
-	}
-}
-
-
-func TestGridSetValue(t *testing.T) {
-	var testCells = []struct {
-		row int
-		col int
-		value uint
-	}{
-		{0, 0, 1},
-		{1, 0, 4},
-		{6, 8, 9},
-		{8, 8, 2},
-	}
-	
-	myGrid := newGrid()
-	for _, testCell := range testCells {
-		row := testCell.row
-		col := testCell.col
-		value := testCell.value
-		myGrid.setCellValue(row, col, value)
-		expected := value
-		got, _ := myGrid.getCellValue(row, col)
-		if got != expected {
-			t.Errorf("Expected %d at %d,%d but got %d.",
-				expected, row, col, got)
-		}
-	}
-}
-
 
 /*
 func TestPuzzleCellNumOptions(t *testing.T) {
@@ -86,40 +36,6 @@ func TestPuzzleSetValueOptions(t *testing.T) {
 	}
 }
 
-func TestIsNumeric(t *testing.T) {
-	t1 := "00003897509120398"
-	t2 := "09287308a98098"
-	if !(isNumeric(t1)) {
-		t.Error(t1, " should be marked numeric.")
-	}
-
-	if isNumeric(t2) {
-		t.Error(t2, " should not be marked numeric.")
-	}
-}
-
-func TestValidateRowFormat(t *testing.T) {
-	row1 := "123456788"
-	row2 := "12345678"
-	row3 := "12345678a"
-	row4 := "1234567899"
-
-	if validateRowFormat(row1) != nil {
- 		t.Error("Row should be valid: ", row1)
-	}
-
-	if validateRowFormat(row2) == nil {
-		t.Error("Row should not be valid: ", row2)
-	}
-
-	if validateRowFormat(row3) == nil {
-		t.Error("Row should not be valid: ", row3)
-	}
-
-	if validateRowFormat(row4) == nil {
-		t.Error("Row should not be valid: ", row4)
-	}
-}
 
 func TestGetValue(t *testing.T) {
 	myGrid := newPuzzle()
@@ -150,17 +66,6 @@ func TestCalcValueOptions(t *testing.T) {
 
 }
 
-func TestUpdateRow(t *testing.T) {
-	myGrid := newPuzzle()
-	myGrid.setValue(1, 2, 8)
-	myGrid.updateRow(1)
-	checkCell := myGrid.getCell(1, 5)
-	hasOption, _ := checkCell.hasOptions(8)
-	if hasOption {
-		t.Error("Cell should not have option 8 if 8 already in row: ",
-		checkCell.valueOptions)
-	}
-}
 
 func TestUpdateCol(t *testing.T) {
 	myGrid := newPuzzle()
@@ -235,21 +140,4 @@ func TestFillAllCells(t *testing.T) {
 	}
 }
 
-func TestInsertRow(t *testing.T) {
-	myGrid := newPuzzle()
-	row := "123456789"
-	myGrid.insertRow(1, row)
-}
-
-func TestPuzzleFromFile(t *testing.T) {
-	puzzleOne := newPuzzle()
-	puzzleOne.setValue(2, 1, 2)
-	puzzleOne.updateAll()
-	puzzleTwo := puzzleFromFile("almost_empty_test.txt")
-	if !(reflect.DeepEqual(puzzleOne, puzzleTwo)) {
-		t.Error("Puzzles should be equal.", puzzleOne, puzzleTwo)
-	}
-	
-	
-}
 */
