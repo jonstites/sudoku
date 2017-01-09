@@ -26,6 +26,7 @@ func TestBitArray(t *testing.T) {
 		set []uint
 		numSet int
 		lowest uint
+		
 	}{
 		{0, []uint {}, 0, 0},
 		{1, []uint {1}, 1, 1},
@@ -37,7 +38,7 @@ func TestBitArray(t *testing.T) {
 
 	for _, bitTest := range bitsTest {
 
-		var results = []testResult {
+		var results = []testResult{
 			{"number of values set", fmt.Sprint(bitTest.numSet), fmt.Sprint(bitTest.bits.numValuesSet())},
 			{"lowest value set", fmt.Sprint(bitTest.numSet), fmt.Sprint(bitTest.bits.lowestValue())},
 		}
@@ -50,6 +51,47 @@ func TestBitArray(t *testing.T) {
 			result := testResult{test, expected, got}
 			results = append(results, result)
 		}
+
+		for _, result := range results {
+			t.Error("Bits: %q Test: %q Got: %q Expected: %q.",
+				bitTest.bits, result.test, result.got, result.expected)
+		}
+	}
+}
+
+func TestBitArraySet(t *testing.T) {
+	var bitsTest = []struct {
+		bits bitarray
+		testBit uint
+		addBit bitarray
+		subBit bitarray
+	}{
+		{newBitArray(2, 5, 9), 3, newBitArray(2, 3, 5, 9), newBitArray(2, 5, 9)},
+		{newBitArray(1, 2, 5, 9), 1, newBitArray(1, 2, 5, 9), newBitArray(2, 5, 9)},
+		{newBitArray(2, 5), 9, newBitArray(2, 5, 9), newBitArray(2, 5)},
+		{newBitArray(5, 6, 7), 5, newBitArray(5, 6, 7), newBitArray(6, 7)},
+		{newBitArray(), 1, newBitArray(1), newBitArray()},
+		{newBitArray(1, 2, 3, 4, 5, 6, 7, 8, 9), 9, newBitArray(1, 2, 3, 4, 5, 6, 7, 8, 9), newBitArray(1, 2, 3, 4, 5, 6, 7, 8)},
+	}
+
+	for _, bitTest := range bitsTest {
+		var results = []testResult{}
+
+		result := testResult {
+			fmt.Sprint("set bit %q to true", bitTest.testBit),
+			fmt.Sprint(bitTest.addBit),
+			fmt.Sprint(setBitTrue(bitTest.bits, bitTest.testBit)),
+		}
+
+		results = append(results, result)
+
+		result = testResult {
+			fmt.Sprint("set bit %q to false", bitTest.testBit),
+			fmt.Sprint(bitTest.subBit),
+			fmt.Sprint(setBitFalse(bitTest.bits, bitTest.testBit)),
+		}
+
+		results = append(results, result)
 
 		for _, result := range results {
 			t.Error("Bits: %q Test: %q Got: %q Expected: %q.",

@@ -3,6 +3,7 @@ package sudoku
 
 type bitarray uint
 
+
 // Create a bit array with given values
 // Offset by 1 because there is no 0 in sudoku
 func newBitArray(values ...uint) bitarray {
@@ -19,7 +20,6 @@ func newBitArray(values ...uint) bitarray {
 func (myBits *bitarray) valueSet(value uint) bool {
 	return (*myBits >> (value - 1) & 1) == 1
 }
-
 
 // Return the number of values set to true
 func (myBits *bitarray) numValuesSet() int {
@@ -40,4 +40,15 @@ func (myBits *bitarray) lowestValue() uint {
 		}
 	}
 	return 0
+}
+
+
+// Set value to true
+func setBitTrue(myBits bitarray, value uint) bitarray {
+	return myBits | newBitArray(value)
+}
+
+// Set value to false
+func setBitFalse(myBits bitarray, value uint) bitarray {
+	return myBits &^ newBitArray(value)
 }
