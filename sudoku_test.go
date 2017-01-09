@@ -1,26 +1,31 @@
 package sudoku
-/*
+
 import (
 	"testing"
-	"reflect"
 )
 
 
 
-func TestPuzzleNumCellCols(t *testing.T) {
-	myPuzzle := newPuzzle()
-	if (len(myPuzzle.puzzle) != 9) {
-		t.Error("Puzzle should have 9 columns")
+func TestGridNumCells(t *testing.T) {
+	myGrid := newGrid()
+	got := len(myGrid.grid)
+	expected := 9
+		
+	if got != expected {
+		t.Errorf("Expected %d rows, not %d.",
+			expected, got)
+	}
+
+	for _, row := range myGrid.grid {
+		got = len(row)
+		if (got != expected) {
+			t.Error("Expected %d columns, not %d.",
+				expected, got)
+		}
 	}
 }
 
-func TestPuzzleNumCellRows(t *testing.T) {
-	myPuzzle := newPuzzle()
-	if (len(myPuzzle.puzzle[0]) != 9) {
-		t.Error("Puzzle should have 9 rows")
-	}
-}
-
+/*
 func TestPuzzleGetCell(t *testing.T) {
 	myPuzzle := newPuzzle()
 	myPuzzle.puzzle[3][5].value = 5

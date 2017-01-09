@@ -1,4 +1,5 @@
 package sudoku
+
 /*
 import (
 	"bufio"
@@ -9,25 +10,27 @@ import (
 	"strconv"
 	"strings"
 )
+*/
 
-
-type Puzzle struct {
-	puzzle [][]Cell
-	guesses [][]int
+type grid struct {
+	grid [][]cell
+	triedCoords [][]int
 }
 
-func newPuzzle() *Puzzle {
-	myPuzzle := new(Puzzle)
-	myPuzzle.puzzle = make([][]Cell, 9)
+// Create an empty 9x9 puzzle 
+func newGrid() *grid {
+	myGrid := new(grid)
+	myGrid.grid = make([][]cell, 9)
 	for i := 0; i < 9; i++ {
-		myPuzzle.puzzle[i] = make([]Cell, 9)
+		myGrid.grid[i] = make([]cell, 9)
 		for j := 0; j < 9; j++ {
-			myPuzzle.puzzle[i][j] = *newCell()
+			myGrid.grid[i][j] = *newCell()
 		}
 	}
-	return myPuzzle
+	return myGrid
 }
-
+/*
+// Get a cell at particular coordinates  
 func (myPuzzle *Puzzle) getCell(rowNum int, colNum int) *Cell {
 	return &myPuzzle.puzzle[rowNum][colNum]
 }
@@ -39,23 +42,13 @@ func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
 
 func (myPuzzle *Puzzle) setValueOptions(rowNum int, colNum int, valueOptions valueSet) {
 	myCell := myPuzzle.getCell(rowNum, colNum)
-	if rowNum == 1 && colNum == 0 {
-		fmt.Println("1, 0: ", valueOptions, myCell.guesses, myCell.valueOptions,
-			(valueOptions &^ myCell.guesses) & myCell.valueOptions)
-	}
-
 	myCell.valueOptions = (valueOptions &^ myCell.guesses) & myCell.valueOptions
-	
 }
 
-func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) (int, error) {
+func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) uint {
 	myCell := myPuzzle.getCell(rowNum, colNum)
-	if !(myCell.valueKnown) {
-		return -1, fmt.Errorf("cell not set.")
-	}
-	return myCell.value, nil
+	return myCell.value
 }
-
 
 func calcValueOptions(cells []Cell) (valueSet, error) {
 	var valueOptions valueSet
@@ -65,15 +58,10 @@ func calcValueOptions(cells []Cell) (valueSet, error) {
 			valueOptions -= 1 << (uint(cell.value) - 1)
 		}
 	}
-
-	if (valueOptions < 0) || (valueOptions > fullSet) {
-		return valueOptions, fmt.Errorf("Row options out of range: ", valueOptions)
-	}
-
 	return valueOptions, nil
 }
 
-
+/*
 func (myPuzzle *Puzzle) updateRow(rowNum int) error {
 	cells := make([]Cell, len(myPuzzle.puzzle))
 	for colNum, cell := range myPuzzle.puzzle[rowNum] {
