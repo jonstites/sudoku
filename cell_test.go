@@ -16,12 +16,17 @@ func intInSlice(values []uint, target uint) bool {
 	return false
 }
 
-func TestBitsSet(t *testing.T) {
+func TestBitArray(t *testing.T) {
 	var bitsTest = []struct {
 		bits uint
 		set []uint
 	}{
 		{0, []uint {}},
+		{1, []uint {1}},
+		{5, []uint {1, 5}},
+		{30, []uint {2, 3, 4}},
+		{128, []uint {7}},
+		{createBits(2, 5, 9), []uint {2, 5, 9}},
 	}
 
 	for _, bits := range bitsTest {
@@ -33,10 +38,6 @@ func TestBitsSet(t *testing.T) {
 	}
 }
 /*
-func TestConstructor(t *testing.T) {
-	for i := 1; 
-}
-
 func TestValueSet(t *testing.T) {
 	value := newValueSet(1, 2, 7)
 	var expected valueSet
@@ -45,6 +46,12 @@ func TestValueSet(t *testing.T) {
 		t.Error("ValueSet of 1,2,7 should be", expected, "not: ", value)
 	}
 }
+
+
+func TestConstructor(t *testing.T) {
+	for i := 1; 
+}
+
 
 func TestCellPrint(t *testing.T) {
 	myCell := Cell{3, 0, true, 0, 0}

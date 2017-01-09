@@ -1,7 +1,7 @@
 package sudoku
 
 // The value for a 9 bit array all set to true
-const fullSet = 511
+const allDigits = 511
 
 type square interface {
 }
@@ -10,6 +10,7 @@ type square interface {
 type cell struct {
 	// The determined value
 	value uint
+
 	// Stores which values the cell is allowed to be
 	options uint
 
@@ -20,32 +21,17 @@ type cell struct {
 	tried uint
 }
 
-// Make a new cell with all possible values
-func newcell() *cell {
-	cell := new(cell)
-	cell.options = fullSet
-	return cell
-}
-
-// Create a bit array with given values
-// Offset by 1 because there is no 0 in sudoku
-func createBits(values ...uint) uint {
-	var bits uint
-	bits = 0
-	for _, value := range values {
-		bits += 1 << (value - 1)
-	}
-	return bits
-}
-
-func valueSet(bitarray uint, value uint) bool {
-	return (bitarray >> (value - 1) & 1) == 1
+func (myCell *cell) setValue(value uint, guessNum int) {
+	myCell.value = value
+	myCell.options = createBits(value)
+	myCell.guess = guessNum
 }
 
 /*
 func (c *cell) addGuess(value uint) {
 	c.guesses = c.guesses | addBits(value)
 }
+
 
 func (c *cell) hasOptions(options ...uint) (bool, error) {
 	cellOptions := c.options
@@ -69,11 +55,6 @@ func (c *cell) numValueOptions() int {
 	return num
 }
 
-func (c *cell) setValue(value int, guessNum int) {
-	c.value = value
-	c.valueKnown = true
-	c.guessNum = guessNum
-}
 
 func (c *cell) chooseValue() int {
 	
@@ -95,4 +76,25 @@ func (c *cell) String() string {
 	}
 	return valueString
 }
+// Make a new cell with all possible values
+func newCell() *cell {
+	cell := new(cell)
+	cell.options = allDigits
+	return cell
+}
 */
+// Create a bit array with given values
+// Offset by 1 because there is no 0 in sudoku
+func createBits(values ...uint) uint {
+	var bits uint
+	bits = 0
+	for _, value := range values {
+		bits += 1 << (value - 1)
+	}
+	return bits
+}
+
+func valueSet(bitarray uint, value uint) bool {
+	return (bitarray >> (value - 1) & 1) == 1
+}
+
