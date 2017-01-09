@@ -80,7 +80,7 @@ func TestBitArraySet(t *testing.T) {
 		var results = []testResult{}
 
 		result := testResult {
-			fmt.Sprint("set bit %q to true", bitTest.testBit),
+			fmt.Sprint("set bit", bitTest.testBit, "to true."),
 			fmt.Sprint(bitTest.addBit),
 			fmt.Sprint(setBitTrue(bitTest.bits, bitTest.testBit)),
 		}
@@ -88,7 +88,7 @@ func TestBitArraySet(t *testing.T) {
 		results = append(results, result)
 
 		result = testResult {
-			fmt.Sprint("set bit %q to false", bitTest.testBit),
+			fmt.Sprint("set bit", bitTest.testBit, "to false."),
 			fmt.Sprint(bitTest.subBit),
 			fmt.Sprint(setBitFalse(bitTest.bits, bitTest.testBit)),
 		}
@@ -97,7 +97,7 @@ func TestBitArraySet(t *testing.T) {
 
 		for _, result := range results {
 			if result.got != result.expected {
-				t.Error("Bits: %q Test: %q Got: %q Expected: %q.",
+				t.Errorf("Bits: %q Test: %q Got: %q Expected: %q.",
 					bitTest.bits, result.test, result.got, result.expected)
 			}
 		}

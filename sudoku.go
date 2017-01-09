@@ -1,16 +1,10 @@
 package sudoku
 
-/*
+
 import (
-	"bufio"
-	"flag"
 	"fmt"
-	"log"
-	"os"
-	"strconv"
-	"strings"
 )
-*/
+
 
 type grid struct {
 	grid [][]cell
@@ -29,27 +23,63 @@ func newGrid() *grid {
 	}
 	return myGrid
 }
-/*
+
 // Get a cell at particular coordinates  
-func (myPuzzle *Puzzle) getCell(rowNum int, colNum int) *Cell {
-	return &myPuzzle.puzzle[rowNum][colNum]
+func (myGrid *grid) getCell(rowNum int, colNum int) (*cell, error) {
+	if rowNum < 0 || colNum < 0 || rowNum >= 9 || colNum >= 9 {
+		return nil, fmt.Errorf("Tried to access out-of-bounds cell %d, %d",
+			rowNum, colNum)
+	}
+	return &myGrid.grid[rowNum][colNum], nil
 }
 
-func (myPuzzle *Puzzle) setValue(rowNum int, colNum int, value int) {
-	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.setValue(value, len(myPuzzle.guesses))
+// Set cell value at given coordinates
+func (myGrid *grid) setCellValue(rowNum int, colNum int, value uint) error {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	myCell.setValue(value, len(myGrid.triedCoords))
+	return err
 }
 
-func (myPuzzle *Puzzle) setValueOptions(rowNum int, colNum int, valueOptions valueSet) {
-	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.valueOptions = (valueOptions &^ myCell.guesses) & myCell.valueOptions
+// Get cell value at given coordinates
+func (myGrid *grid) getCellValue(rowNum int, colNum int) (uint, error) {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	return myCell.value, err
 }
 
-func (myPuzzle *Puzzle) getValue(rowNum int, colNum int) uint {
-	myCell := myPuzzle.getCell(rowNum, colNum)
-	return myCell.value
+func (myGrid *grid) setCellOptions(rowNum int, colNum int, options bitarray) error {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	myCell.setOptions(options)
+	return err
 }
 
+/*
+func (myGrid *Puzzle) addGuess(rowNum int, colNum int, value int) {
+	myCell := myGrid.getCell(rowNum, colNum)
+	myCell.addGuess(value)
+}
+
+// If a guess was wrong, undo all squares that depended on the guess
+func (myGrid *Grid) reset(guess uint) {
+	for _, row := range myGrid.grid {
+		for _, cell := range row {
+			cell.reset(guess)
+		}
+	}
+}
+/*
+func (myGrid *Puzzle) String() string {
+	var box []string
+	for _, row := range myGrid.grid {
+		var rowValues []string
+		for _, col := range row {
+			rowValues = append(rowValues, col.String())
+		}
+		box = append(box, strings.Join(rowValues, ""))
+	}
+	return strings.Join(box, "\n")
+}
+
+/*
 func calcValueOptions(cells []Cell) (valueSet, error) {
 	var valueOptions valueSet
 	valueOptions = fullSet
@@ -62,44 +92,44 @@ func calcValueOptions(cells []Cell) (valueSet, error) {
 }
 
 /*
-func (myPuzzle *Puzzle) updateRow(rowNum int) error {
-	cells := make([]Cell, len(myPuzzle.puzzle))
-	for colNum, cell := range myPuzzle.puzzle[rowNum] {
+func (myGrid *Puzzle) updateRow(rowNum int) error {
+	cells := make([]Cell, len(myGrid.puzzle))
+	for colNum, cell := range myGrid.puzzle[rowNum] {
 		cells[colNum] = cell
 	}
 
 	valueOptions, err := calcValueOptions(cells)
 
-	for colNum, _ := range myPuzzle.puzzle[rowNum] {
-		myPuzzle.setValueOptions(rowNum, colNum, valueOptions)
+	for colNum, _ := range myGrid.puzzle[rowNum] {
+		myGrid.setValueOptions(rowNum, colNum, valueOptions)
 	}
 	
 	return err
 }
 
-func (myPuzzle *Puzzle) updateCol(colNum int) error {
-	cells := make([]Cell, len(myPuzzle.puzzle))
-	for rowNum, row := range myPuzzle.puzzle {
+func (myGrid *Puzzle) updateCol(colNum int) error {
+	cells := make([]Cell, len(myGrid.puzzle))
+	for rowNum, row := range myGrid.puzzle {
 		cells[rowNum] = row[colNum]
 	}
 
 	valueOptions, err := calcValueOptions(cells)
-	for rowNum, _ := range myPuzzle.puzzle {
-		myPuzzle.setValueOptions(rowNum, colNum, valueOptions)
+	for rowNum, _ := range myGrid.puzzle {
+		myGrid.setValueOptions(rowNum, colNum, valueOptions)
 	}
 
 	return err
 }
 
 
-func (myPuzzle *Puzzle) updateBlock(rowNum int, colNum int) error {
-	cells := make([]Cell, len(myPuzzle.puzzle))
+func (myGrid *Puzzle) updateBlock(rowNum int, colNum int) error {
+	cells := make([]Cell, len(myGrid.puzzle))
 	blockRow := rowNum - (rowNum % 3)
 	blockCol := colNum - (colNum % 3)
 	i := 0
 	for rowIndex := blockRow; rowIndex < blockRow + 3; rowIndex += 1 {
 		for colIndex := blockCol; colIndex < blockCol + 3; colIndex += 1 {
-			cells[i] = *myPuzzle.getCell(rowIndex, colIndex)
+			cells[i] = *myGrid.getCell(rowIndex, colIndex)
 			i++
 		}
 	}
@@ -108,31 +138,31 @@ func (myPuzzle *Puzzle) updateBlock(rowNum int, colNum int) error {
 
 	for rowIndex := blockRow; rowIndex < blockRow + 3; rowIndex += 1 {
 		for colIndex := blockCol; colIndex < blockCol + 3; colIndex += 1 {
-			myPuzzle.setValueOptions(rowIndex, colIndex, valueOptions)
+			myGrid.setValueOptions(rowIndex, colIndex, valueOptions)
 		}
 	}
 	return err
 		
 }
 
-func (myPuzzle *Puzzle) updateAll() error {
+func (myGrid *Puzzle) updateAll() error {
 	fmt.Println("Updating all")
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
-			myCell := myPuzzle.getCell(i, j)
-			if myCell.guessNum > len(myPuzzle.guesses) {
-				myPuzzle.puzzle[i][j].valueKnown = false
-				myPuzzle.puzzle[i][j].valueOptions = fullSet
+			myCell := myGrid.getCell(i, j)
+			if myCell.guessNum > len(myGrid.guesses) {
+				myGrid.puzzle[i][j].valueKnown = false
+				myGrid.puzzle[i][j].valueOptions = fullSet
 			}
 		}
 	}
 	
 	for i := 0; i < 9; i++ {
-		err := myPuzzle.updateRow(i)
+		err := myGrid.updateRow(i)
 		if err != nil {
 			return err
 		}
-		err = myPuzzle.updateCol(i)
+		err = myGrid.updateCol(i)
 		if err != nil {
 			return err
 		}
@@ -140,7 +170,7 @@ func (myPuzzle *Puzzle) updateAll() error {
 
 	for i := 0; i < 9; i = i + 3 {
 		for j := 0; j < 9; j = j + 3 {
-			err := myPuzzle.updateBlock(i, j)
+			err := myGrid.updateBlock(i, j)
 			if err != nil {
 				return err
 			}
@@ -150,14 +180,14 @@ func (myPuzzle *Puzzle) updateAll() error {
 	return nil
 }
 
-func (myPuzzle *Puzzle) fillOneCell() error {
+func (myGrid *Puzzle) fillOneCell() error {
 	bestRowNum := 0
 	bestColNum := 0
 	bestNumOptions := 10
 	bestCellValue := 0
 	isComplete := true
 
-	for rowNum, row := range myPuzzle.puzzle {
+	for rowNum, row := range myGrid.puzzle {
 		for colNum, cell := range row {
 			if cell.valueKnown {
 				continue
@@ -183,18 +213,18 @@ func (myPuzzle *Puzzle) fillOneCell() error {
 
 
 	if bestNumOptions == 0 {
-		guessSize := len(myPuzzle.guesses)
+		guessSize := len(myGrid.guesses)
 		fmt.Println("Problem cell is: ", bestRowNum, bestColNum)
 		if guessSize == 0 {
 			return fmt.Errorf("This sudoku puzzle cannot be solved.",
-			myPuzzle.guesses, "\n", myPuzzle)
+			myGrid.guesses, "\n", myGrid)
 		}
 
-		fmt.Println("Removed a guess at: ", myPuzzle.guesses[guessSize - 1])
-		fmt.Println("Was:\n", myPuzzle)
-		myPuzzle.guesses = myPuzzle.guesses[:guessSize - 1]
-		myPuzzle.updateAll()
-		fmt.Println("Is:\n", myPuzzle)
+		fmt.Println("Removed a guess at: ", myGrid.guesses[guessSize - 1])
+		fmt.Println("Was:\n", myGrid)
+		myGrid.guesses = myGrid.guesses[:guessSize - 1]
+		myGrid.updateAll()
+		fmt.Println("Is:\n", myGrid)
 	}
 	
 
@@ -202,49 +232,45 @@ func (myPuzzle *Puzzle) fillOneCell() error {
 		coordinates := []int {bestRowNum, bestColNum}
 
 
-		myPuzzle.guesses = append(myPuzzle.guesses, coordinates)
-		myPuzzle.addGuess(bestRowNum, bestColNum, bestCellValue)
+		myGrid.guesses = append(myGrid.guesses, coordinates)
+		myGrid.addGuess(bestRowNum, bestColNum, bestCellValue)
 		fmt.Println("Made a guess at: ", bestRowNum, bestColNum, bestCellValue)
-		fmt.Println("Was:\n", myPuzzle)
+		fmt.Println("Was:\n", myGrid)
 	}
 
-	myPuzzle.setValue(bestRowNum, bestColNum, bestCellValue)
-	myPuzzle.updateRow(bestRowNum)
-	myPuzzle.updateCol(bestColNum)
-	myPuzzle.updateBlock(bestRowNum, bestColNum)
+	myGrid.setValue(bestRowNum, bestColNum, bestCellValue)
+	myGrid.updateRow(bestRowNum)
+	myGrid.updateCol(bestColNum)
+	myGrid.updateBlock(bestRowNum, bestColNum)
 	if bestNumOptions > 1 {
-		fmt.Println("Is:\n", myPuzzle)
+		fmt.Println("Is:\n", myGrid)
 	}
 	return nil
 }
 
-func (myPuzzle *Puzzle) addGuess(rowNum int, colNum int, value int) {
-	myCell := myPuzzle.getCell(rowNum, colNum)
-	myCell.addGuess(value)
-}
 
-func (myPuzzle *Puzzle) fillAllCells() error {
-	isComplete, err := myPuzzle.isComplete()
+func (myGrid *Puzzle) fillAllCells() error {
+	isComplete, err := myGrid.isComplete()
 	if err != nil {
 		return err
 	}
 	for !(isComplete) {
-		err := myPuzzle.fillOneCell() 
+		err := myGrid.fillOneCell() 
 		if err != nil {
 			return err
 		}
-		isComplete, err = myPuzzle.isComplete()
+		isComplete, err = myGrid.isComplete()
 		if err != nil {
 			return err
 		}
 	}
-	isComplete, _ = myPuzzle.isComplete()
+	isComplete, _ = myGrid.isComplete()
 	fmt.Println(isComplete)
 	return nil
 }
 
-func (myPuzzle *Puzzle) isComplete() (bool, error) {
-	for _, row := range myPuzzle.puzzle {
+func (myGrid *Puzzle) isComplete() (bool, error) {
+	for _, row := range myGrid.puzzle {
 		for _, cell := range row {
 			if !cell.valueKnown {
 				return false, nil
@@ -257,30 +283,16 @@ func (myPuzzle *Puzzle) isComplete() (bool, error) {
 	return true, nil
 }
 
-func (myPuzzle *Puzzle) insertRow(rowNum int, row string) {
+func (myGrid *Puzzle) insertRow(rowNum int, row string) {
 	for colNum, char := range row {
 		value := int(char-'0')
 		if value != 0 {
-			myPuzzle.setValue(rowNum, colNum, value)
+			myGrid.setValue(rowNum, colNum, value)
 		}
 	}
 }
 
-func box(cells [][]Cell) string {
-	var box []string
-	for _, row := range cells {
-		var rowValues []string
-		for _, col := range row {
-			rowValues = append(rowValues, col.String())
-		}
-		box = append(box, strings.Join(rowValues, ""))
-	}
-	return strings.Join(box, "\n")
-}
 
-func (myPuzzle *Puzzle) String() string {
-	return box(myPuzzle.puzzle)
-}
 
 func isNumeric(row string) bool {
 	for _, char := range row {
@@ -310,7 +322,7 @@ func puzzleFromFile(filename string) *Puzzle {
 	}
 	defer file.Close()
 
-	myPuzzle := newPuzzle()
+	myGrid := newPuzzle()
 	
 	scanner := bufio.NewScanner(file)
 	i := 0
@@ -324,7 +336,7 @@ func puzzleFromFile(filename string) *Puzzle {
 			log.Fatal(err)
 		}
 
-		myPuzzle.insertRow(i, row)
+		myGrid.insertRow(i, row)
 		i++
 	}
 	
@@ -332,18 +344,18 @@ func puzzleFromFile(filename string) *Puzzle {
 		log.Fatal(err)
 	}
 
-	myPuzzle.updateAll()
-	return myPuzzle
+	myGrid.updateAll()
+	return myGrid
 }
 
 func main() {
 	sudokuFile := flag.String("filename", "", "File of sudoku puzzle to solve.")
 	flag.Parse()
-	myPuzzle := puzzleFromFile(*sudokuFile)
-	err := myPuzzle.fillAllCells()
+	myGrid := puzzleFromFile(*sudokuFile)
+	err := myGrid.fillAllCells()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(myPuzzle)
+	fmt.Println(myGrid)
 }
 */

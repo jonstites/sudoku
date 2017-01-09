@@ -25,20 +25,39 @@ func TestGridNumCells(t *testing.T) {
 	}
 }
 
-/*
-func TestPuzzleGetCell(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.puzzle[3][5].value = 5
-	myCell := myPuzzle.getCell(3, 5)
-	if myCell.value != 5 {
-		t.Error("Function getCell should be getting a cell with value of 5.")
+
+func TestGridSetValue(t *testing.T) {
+	var testCells = []struct {
+		row int
+		col int
+		value uint
+	}{
+		{0, 0, 1},
+		{1, 0, 4},
+		{6, 8, 9},
+		{8, 8, 2},
+	}
+	
+	myGrid := newGrid()
+	for _, testCell := range testCells {
+		row := testCell.row
+		col := testCell.col
+		value := testCell.value
+		myGrid.setCellValue(row, col, value)
+		expected := value
+		got, _ := myGrid.getCellValue(row, col)
+		if got != expected {
+			t.Errorf("Expected %d at %d,%d but got %d.",
+				expected, row, col, got)
+		}
 	}
 }
 
 
+/*
 func TestPuzzleCellNumOptions(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myCell := myPuzzle.getCell(3, 5)
+	myGrid := newPuzzle()
+	myCell := myGrid.getCell(3, 5)
 	numOptions := myCell.numValueOptions()
 	if (numOptions != 9) {
 		t.Error("Puzzle cells should have 9 options, not ", numOptions)
@@ -46,9 +65,9 @@ func TestPuzzleCellNumOptions(t *testing.T) {
 }
 
 func TestPuzzleSetValue(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValue(3, 2, 8)
-	myCell := myPuzzle.getCell(3, 2)
+	myGrid := newPuzzle()
+	myGrid.setValue(3, 2, 8)
+	myCell := myGrid.getCell(3, 2)
 	if (myCell.value != 8) {
 		t.Error("Puzzle should have 8 set at 3,2.")
 	}
@@ -59,9 +78,9 @@ func TestPuzzleSetValue(t *testing.T) {
 
 
 func TestPuzzleSetValueOptions(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValueOptions(3, 2, 8)
-	myCell := myPuzzle.getCell(3, 2)
+	myGrid := newPuzzle()
+	myGrid.setValueOptions(3, 2, 8)
+	myCell := myGrid.getCell(3, 2)
 	if (myCell.valueOptions != 8) {
 		t.Error("Puzzle should have valueOption '8' at 3,2.")
 	}
@@ -103,9 +122,9 @@ func TestValidateRowFormat(t *testing.T) {
 }
 
 func TestGetValue(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValue(3, 2, 8)
-	value, ok := myPuzzle.getValue(3, 2)
+	myGrid := newPuzzle()
+	myGrid.setValue(3, 2, 8)
+	value, ok := myGrid.getValue(3, 2)
 	if ok != nil {
 		t.Error("")
 	}
@@ -114,7 +133,7 @@ func TestGetValue(t *testing.T) {
 		t.Error()
 	}
 
-	value, ok = myPuzzle.getValue(3, 3)
+	value, ok = myGrid.getValue(3, 3)
 	if ok == nil {
 		t.Error()
 	}
@@ -132,10 +151,10 @@ func TestCalcValueOptions(t *testing.T) {
 }
 
 func TestUpdateRow(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValue(1, 2, 8)
-	myPuzzle.updateRow(1)
-	checkCell := myPuzzle.getCell(1, 5)
+	myGrid := newPuzzle()
+	myGrid.setValue(1, 2, 8)
+	myGrid.updateRow(1)
+	checkCell := myGrid.getCell(1, 5)
 	hasOption, _ := checkCell.hasOptions(8)
 	if hasOption {
 		t.Error("Cell should not have option 8 if 8 already in row: ",
@@ -144,10 +163,10 @@ func TestUpdateRow(t *testing.T) {
 }
 
 func TestUpdateCol(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValue(1, 2, 8)
-	myPuzzle.updateCol(2)
-	checkCell := myPuzzle.getCell(5, 2)
+	myGrid := newPuzzle()
+	myGrid.setValue(1, 2, 8)
+	myGrid.updateCol(2)
+	checkCell := myGrid.getCell(5, 2)
 	hasOption, _ := checkCell.hasOptions(8)
 	if hasOption {
 		t.Error("Cell should not have option 8 if 8 already in col: ",
@@ -156,10 +175,10 @@ func TestUpdateCol(t *testing.T) {
 }
 
 func TestUpdateBlock(t *testing.T) {
-	myPuzzle := newPuzzle()
-	myPuzzle.setValue(1, 7, 8)
-	myPuzzle.updateBlock(1, 7)
-	checkCell := myPuzzle.getCell(2, 6)
+	myGrid := newPuzzle()
+	myGrid.setValue(1, 7, 8)
+	myGrid.updateBlock(1, 7)
+	checkCell := myGrid.getCell(2, 6)
 	hasOption, _ := checkCell.hasOptions(8)
 	if hasOption {
 		t.Error("Cell should not have option 8 if 8 already in block: ",
@@ -168,12 +187,12 @@ func TestUpdateBlock(t *testing.T) {
 }
 
 func TestUpdateAll(t *testing.T) {
-	myPuzzle := puzzleFromFile("almost_empty_test.txt")
-	myPuzzle.updateAll()
+	myGrid := puzzleFromFile("almost_empty_test.txt")
+	myGrid.updateAll()
 	var cells [3]Cell
-	cells[0] = *myPuzzle.getCell(0, 1)
-	cells[1] = *myPuzzle.getCell(2, 6)
-	cells[2] = *myPuzzle.getCell(8, 1)
+	cells[0] = *myGrid.getCell(0, 1)
+	cells[1] = *myGrid.getCell(2, 6)
+	cells[2] = *myGrid.getCell(8, 1)
 
 	for i, cell := range cells {
 		hasOption, _ := cell.hasOptions(2)
@@ -184,42 +203,42 @@ func TestUpdateAll(t *testing.T) {
 }
 
 func TestPuzzleComplete(t *testing.T) {
-	myPuzzle := puzzleFromFile("almost_complete_test.txt")
-	if isComplete, _ := myPuzzle.isComplete(); isComplete {
-		t.Error("Puzzle should not be considered complete: ", myPuzzle)
+	myGrid := puzzleFromFile("almost_complete_test.txt")
+	if isComplete, _ := myGrid.isComplete(); isComplete {
+		t.Error("Puzzle should not be considered complete: ", myGrid)
 	}
 
-	myPuzzle.fillOneCell()
-	if isComplete, _ := myPuzzle.isComplete(); !isComplete {
-		t.Error("Puzzle should be considered complete: ", myPuzzle)
+	myGrid.fillOneCell()
+	if isComplete, _ := myGrid.isComplete(); !isComplete {
+		t.Error("Puzzle should be considered complete: ", myGrid)
 	}
 	
 }
 
 func TestFillOneCell(t *testing.T) {
-	myPuzzle := puzzleFromFile("almost_complete_test.txt")
-	myPuzzle.fillOneCell()
-	myCell := myPuzzle.getCell(4, 7)
+	myGrid := puzzleFromFile("almost_complete_test.txt")
+	myGrid.fillOneCell()
+	myCell := myGrid.getCell(4, 7)
 	if myCell.value != 5 {
 		t.Error("Cell should have 3 at 4, 7, not: ", myCell.value)
 	}
 }
 
 func TestFillAllCells(t *testing.T) {
-	myPuzzle := puzzleFromFile("row_missing_test.txt")
-	err := myPuzzle.fillAllCells()
+	myGrid := puzzleFromFile("row_missing_test.txt")
+	err := myGrid.fillAllCells()
 	if err != nil {
 		t.Error(err)
 	}
-	if isComplete, _ := myPuzzle.isComplete(); !isComplete {
-		t.Error("Puzzle should have been completed: ", myPuzzle)
+	if isComplete, _ := myGrid.isComplete(); !isComplete {
+		t.Error("Puzzle should have been completed: ", myGrid)
 	}
 }
 
 func TestInsertRow(t *testing.T) {
-	myPuzzle := newPuzzle()
+	myGrid := newPuzzle()
 	row := "123456789"
-	myPuzzle.insertRow(1, row)
+	myGrid.insertRow(1, row)
 }
 
 func TestPuzzleFromFile(t *testing.T) {

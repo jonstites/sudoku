@@ -14,14 +14,14 @@ type cell struct {
 	options bitarray
 
 	// Keep track of dependent guess when value is set
-	guess uint
+	guess int
 
 	// any failed guesses in this cell
 	tried bitarray
 }
 
 // Set the cell value 
-func (myCell *cell) setValue(value uint, guessNum uint) {
+func (myCell *cell) setValue(value uint, guessNum int) {
 	myCell.value = value
 	myCell.options = newBitArray(value)
 	myCell.guess = guessNum
@@ -30,6 +30,17 @@ func (myCell *cell) setValue(value uint, guessNum uint) {
 // add to tried values
 func (myCell *cell) setTriedValue(value uint) {
 	myCell.tried = setBitTrue(myCell.tried, value)
+}
+
+// Set cell options, excluding any previously-tried values
+func (myCell *cell) setOptions(options bitarray) {
+	myCell.options = options &^ myCell.tried
+}
+
+func (myCell *cell) reset(guess int) {
+	if myCell.guess <= guess {
+		myCell = newCell()
+	}
 }
 
 // Print the value of a cell f

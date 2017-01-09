@@ -11,7 +11,7 @@ import (
 
 func TestSetValue(t *testing.T) {
 	for i := uint(1); i <= 9; i++ {
-		for j := uint(1); j <= 9; j++ {
+		for j := 1; j <= 9; j++ {
 			myCell := newCell()
 			myCell.setValue(i, j)
 			if myCell.value != i {
@@ -24,11 +24,12 @@ func TestSetValue(t *testing.T) {
 				i, myCell.value)
 			}
 
-			myCell.setTriedValue(j)
+			uint_j := uint(j)
+			myCell.setTriedValue(uint_j)
 
 			for k := uint(1); k <= 9; k++ {
 				got := myCell.tried.valueTrue(k)
-				expected := (j == k)
+				expected := (uint_j == k)
 				if got != expected {
 					t.Errorf("Value %d was expected to be %t but got %t in %d.",
 						j, expected, got, myCell.tried)
@@ -60,3 +61,27 @@ func TestCellString(t *testing.T) {
 	}
 }
 
+func TestSetOptions(t *testing.T) {
+
+	var testCells = []struct {
+		cell cell
+		value uint
+		hasOption bool
+	}{
+		{cell{tried: 0}, 5, true},
+		{cell{tried: 1}, 1, false},
+		{cell{tried: 5}, 3, false},
+		{cell{tried: 30}, 7, true},
+		{cell{tried: 128}, 8, false},
+	}
+
+	for _, testCell := range testCells {
+		testCell.cell.setOptions(511)
+		expected := testCell.hasOption
+		got := testCell.cell.options.valueTrue(testCell.value)
+		if got != expected {
+			t.Errorf("Expected %q set to %b but got %q.",
+				testCell.value, expected, got)
+		}
+	}
+}
