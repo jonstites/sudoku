@@ -30,31 +30,33 @@ func TestBitArray(t *testing.T) {
 	}{
 		{0, []uint {}, 0, 0},
 		{1, []uint {1}, 1, 1},
-		{5, []uint {1, 5}, 2, 1},
-		{30, []uint {2, 3, 4}, 3, 2},
-		{128, []uint {7}, 1, 7},
+		{5, []uint {1, 3}, 2, 1},
+		{30, []uint {2, 3, 4, 5}, 4, 2},
+		{128, []uint {8}, 1, 8},
 		{newBitArray(2, 5, 9), []uint {2, 5, 9}, 3, 2},
 	}
 
 	for _, bitTest := range bitsTest {
 
 		var results = []testResult{
-			{"number of values set", fmt.Sprint(bitTest.numSet), fmt.Sprint(bitTest.bits.numValuesSet())},
-			{"lowest value set", fmt.Sprint(bitTest.numSet), fmt.Sprint(bitTest.bits.lowestValue())},
+			{"number of values set", fmt.Sprint(bitTest.numSet), fmt.Sprint(bitTest.bits.numValuesTrue())},
+			{"lowest value set", fmt.Sprint(bitTest.lowest), fmt.Sprint(bitTest.bits.lowestValue())},
 		}
 
 		for i := uint(1); i <= 9; i++ {
-			test := fmt.Sprint("%q is set", i)
+			test := fmt.Sprint(i, " is set")
 			expected := fmt.Sprint(intInSlice(bitTest.set, i))
-			got := fmt.Sprint(bitTest.bits.valueSet(i))
+			got := fmt.Sprint(bitTest.bits.valueTrue(i))
 
 			result := testResult{test, expected, got}
 			results = append(results, result)
 		}
 
 		for _, result := range results {
-			t.Error("Bits: %q Test: %q Got: %q Expected: %q.",
-				bitTest.bits, result.test, result.got, result.expected)
+			if result.expected != result.got {
+				t.Errorf("Bits: %d Test: %q Got: %q Expected: %q.",
+					bitTest.bits, result.test, result.got, result.expected)
+			}
 		}
 	}
 }
@@ -94,8 +96,10 @@ func TestBitArraySet(t *testing.T) {
 		results = append(results, result)
 
 		for _, result := range results {
-			t.Error("Bits: %q Test: %q Got: %q Expected: %q.",
-				bitTest.bits, result.test, result.got, result.expected)
+			if result.got != result.expected {
+				t.Error("Bits: %q Test: %q Got: %q Expected: %q.",
+					bitTest.bits, result.test, result.got, result.expected)
+			}
 		}
 	}
 }

@@ -1,6 +1,6 @@
 package sudoku
 
-/*
+
 import (
 	"testing"
 )
@@ -8,22 +8,19 @@ import (
 
 //defaultCell := Cell{bitArray: 511}
 
-/*
-func TestValueSet(t *testing.T) {
-	value := newValueSet(1, 2, 7)
-	var expected valueSet
-	expected = 67
-	if value != expected {
-		t.Error("ValueSet of 1,2,7 should be", expected, "not: ", value)
+func TestConstructor(t *testing.T) {
+	myCell := newCell()
+	for i := uint(1); i <= 9; i++ {
+		expected := true
+		got := myCell.options.valueTrue(i)
+		if got != expected {
+			t.Error("Expected %q set to %q but got %q.",
+				i, expected, got)
+		}
 	}
 }
 
-
-func TestConstructor(t *testing.T) {
-	for i := 1; 
-}
-
-
+/*
 func TestCellPrint(t *testing.T) {
 	myCell := Cell{3, 0, true, 0, 0}
 	if !(myCell.String() == "3") {
