@@ -1,5 +1,6 @@
 package sudoku
 
+/*
 import (
 	"testing"
 )
@@ -7,36 +8,6 @@ import (
 
 //defaultCell := Cell{bitArray: 511}
 
-func intInSlice(values []uint, target uint) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
-}
-
-func TestBitArray(t *testing.T) {
-	var bitsTest = []struct {
-		bits uint
-		set []uint
-	}{
-		{0, []uint {}},
-		{1, []uint {1}},
-		{5, []uint {1, 5}},
-		{30, []uint {2, 3, 4}},
-		{128, []uint {7}},
-		{createBits(2, 5, 9), []uint {2, 5, 9}},
-	}
-
-	for _, bits := range bitsTest {
-		for i := uint(1); i <= 9; i++ {
-			if valueSet(bits.bits, i) != intInSlice(bits.set, i) {
-				t.Error("Bits: ", bits.bits, "value:", i, "does not match expected.")
-			}
-		}
-	}
-}
 /*
 func TestValueSet(t *testing.T) {
 	value := newValueSet(1, 2, 7)
