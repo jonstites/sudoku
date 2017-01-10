@@ -39,8 +39,8 @@ func (myCell *cell) setOptions(options bitarray) {
 
 // If the cell depended on an old guess, reset the cell
 func (myCell *cell) reset(guess int) {
-	if myCell.guess <= guess {
-		myCell = newCell()
+	if myCell.guess > guess {
+		myCell.value = 0
 	}
 }
 

@@ -19,11 +19,10 @@ func TestEasiestCell(t *testing.T) {
 	}
 	
 	myGrid := newGrid()
-	tried := [][]int {}
+	tried := 0
 	for _, testEasy := range testEasiest {
-		
-		myGrid.setCellValue(testEasy.rowNum, testEasy.colNum, testEasy.value)
-		myGrid.reset(len(tried))
+		myGrid.setCellValue(testEasy.rowNum, testEasy.colNum, testEasy.value, 0)
+		myGrid.reset(tried)
 		expectedRow := testEasy.easyRow
 		expectedCol := testEasy.easyCol
 
@@ -43,6 +42,29 @@ func TestEasiestCell(t *testing.T) {
 				expectedRow, expectedCol, expectedValue, gotValue)
 			}
 		})
+
+		tried += 1
+	}
+	
+}
+
+func TestMistakes(t *testing.T) {
+	myGrid := newGrid()
+	myGrid.setCellValue(0, 0, 9, 1)
+	myGrid.setCellValue(0, 1, 8, 2)
+	myCell, _ := myGrid.getCell(0, 2)
+	for i:= uint(1) ; i < 9; i++ {
+		myCell.setTriedValue(i)
+	}
+
+	tried, _ := fillCell(myGrid, 2)
+	fillCell(myGrid, tried)
+	expectedValue := uint(1)
+	got, _ := myGrid.getCellValue(0, 0)
+	
+	if got != expectedValue {
+		t.Errorf("Cell %d, %d was expected to be %d but got %d in:\n%s",
+			0, 0, expectedValue, got, myGrid)
 	}
 }
 /*

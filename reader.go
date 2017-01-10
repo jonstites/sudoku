@@ -70,7 +70,7 @@ func insertRow(myGrid *grid, cellsFilled int, row string) {
 
 		// Put into the grid
 		if value != 0 {
-			myGrid.setCellValue(rowNum, colNum, value)
+			myGrid.setCellValue(rowNum, colNum, value, 0)
 		} else {
 			cell, _ := myGrid.getCell(rowNum, colNum)
 			cell.reset(0)

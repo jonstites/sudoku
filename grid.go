@@ -9,7 +9,6 @@ import (
 
 type grid struct {
 	grid [][]cell
-	triedCoords [][]int
 }
 
 // Create an empty 9x9 puzzle 
@@ -35,9 +34,9 @@ func (myGrid *grid) getCell(rowNum int, colNum int) (*cell, error) {
 }
 
 // Set cell value at given coordinates
-func (myGrid *grid) setCellValue(rowNum int, colNum int, value uint) error {
+func (myGrid *grid) setCellValue(rowNum int, colNum int, value uint, numTried int) error {
 	myCell, err := myGrid.getCell(rowNum, colNum)
-	myCell.setValue(value, len(myGrid.triedCoords))
+	myCell.setValue(value, numTried)
 	return err
 }
 
@@ -56,9 +55,10 @@ func (myGrid *grid) setCellOptions(rowNum int, colNum int, options bitarray) err
 
 // If a guess was wrong, undo all squares that depended on the guess
 func (myGrid *grid) reset(guess int) {
-	for _, row := range myGrid.grid {
-		for _, cell := range row {
-			cell.reset(guess)
+	for i, row := range myGrid.grid {
+		for j, _ := range row {
+			myCell, _ := myGrid.getCell(i, j)
+			myCell.reset(guess)
 		}
 	}
 	myGrid.updateAllOptions()
@@ -66,6 +66,11 @@ func (myGrid *grid) reset(guess int) {
 
 // Set the options for a cell
 func (myGrid *grid) updateOptions(rowNum int, colNum int) {
+	myCell, _ := myGrid.getCell(rowNum, colNum)
+	if myCell.isKnown() {
+		return
+	}
+	
 	options := allTrue()
 
 	// update within row
@@ -96,7 +101,7 @@ func (myGrid *grid) updateOptions(rowNum int, colNum int) {
 	}
 
 	// update this cell
-	myCell, _ := myGrid.getCell(rowNum, colNum)
+	myCell, _ = myGrid.getCell(rowNum, colNum)
 	myCell.setOptions(options)
 }
 

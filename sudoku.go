@@ -2,6 +2,7 @@ package sudoku
 
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -34,37 +35,45 @@ func notSolvable(myGrid *grid) bool {
 }
 
 // If the sudoku is stuck, undo the guesses made one at a time
-func undoMistakes(myGrid *grid, tried [][]int) error {
+func undoMistakes(myGrid *grid, tryCounter int) (int, error) {
 	needUndo := notSolvable(myGrid)
 	for needUndo == true {
-		if len(tried) == 0 {
-			log.Fatal("Sudoku cannot be solved.")
+		if tryCounter <= 0 {
+			log.Fatal("Sudoku cannot be solved:", myGrid)
 		}
 
-		tried = tried[:len(tried) - 1]
-		myGrid.reset(len(tried))
+		tryCounter -= 1
+		myGrid.reset(tryCounter)
 		needUndo = notSolvable(myGrid)
 	}
-	return nil
+	return tryCounter, nil
 }
 
 // Fill in one cell of the grid
-func fillCell(myGrid *grid, tried [][]int) error {
+func fillCell(myGrid *grid, tryCounter int) (int, error) {
+	myGrid.reset(tryCounter)
+	
 	if myGrid.isComplete() {
-		log.Fatal("Sudoku already complete.")
+		return tryCounter, fmt.Errorf("Sudoku already complete.")
 	}
 
-	err := undoMistakes(myGrid, tried)
+	tryCounter, err := undoMistakes(myGrid, tryCounter)
 	if err != nil {
-		log.Fatal(err)
+		return tryCounter, err
 	}
 
 	row, col := getEasiestCell(myGrid)
 	myCell, _ := myGrid.getCell(row, col)
 	value := myCell.options.lowestValue()
-	myGrid.setCellValue(row, col, value)
-	myGrid.reset(len(tried))
-	return nil
+
+	if myCell.options.numValuesTrue() > 1 {
+		tryCounter += 1
+		myCell.setTriedValue(value)
+	}
+
+	myGrid.setCellValue(row, col, value, tryCounter)
+	myGrid.reset(tryCounter)
+	return tryCounter, nil
 }
 
 
