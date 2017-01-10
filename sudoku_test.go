@@ -1,9 +1,50 @@
 package sudoku
 
 import (
-
+	"testing"
 )
 
+func TestEasiestCell(t *testing.T) {
+	var testEasiest = []struct {
+		rowNum int
+		colNum int
+		value uint
+		easyRow int
+		easyCol int
+		easyValue uint
+	}{
+		{0, 1, 1, 0, 0, 2},
+		{2, 8, 3, 0, 6, 4},
+		{5, 2, 5, 0, 2, 3},
+	}
+	
+	myGrid := newGrid()
+	tried := [][]int {}
+	for _, testEasy := range testEasiest {
+		
+		myGrid.setCellValue(testEasy.rowNum, testEasy.colNum, testEasy.value)
+		myGrid.reset(len(tried))
+		expectedRow := testEasy.easyRow
+		expectedCol := testEasy.easyCol
+
+		t.Run("Get easiest cell", func(t *testing.T) {
+			gotRow, gotCol := getEasiestCell(myGrid)
+			if (gotRow != expectedRow) || (gotCol != expectedCol) {
+				t.Errorf("Expected coordinates %d, %d but got %d, %d in:\n%s",
+					expectedRow, expectedCol, gotRow, gotCol, myGrid)
+			}
+		})
+		t.Run("Fill easiest cell", func(t *testing.T) {
+			fillCell(myGrid, tried)
+			expectedValue := testEasy.easyValue
+			gotValue, _ := myGrid.getCellValue(expectedRow, expectedCol)
+			if gotValue != expectedValue {
+				t.Errorf("Expected %d, %d to be %d but got %d.",
+				expectedRow, expectedCol, expectedValue, gotValue)
+			}
+		})
+	}
+}
 /*
 func TestPuzzleCellNumOptions(t *testing.T) {
 	myGrid := newPuzzle()
