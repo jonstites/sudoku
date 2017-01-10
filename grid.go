@@ -2,11 +2,126 @@ package sudoku
 
 
 import (
+	"fmt"
 )
 
 
+type grid struct {
+	grid [][]cell
+	triedCoords [][]int
+}
 
+// Create an empty 9x9 puzzle 
+func newGrid() *grid {
+	myGrid := new(grid)
+	myGrid.grid = make([][]cell, 9)
+	for i := 0; i < 9; i++ {
+		myGrid.grid[i] = make([]cell, 9)
+		for j := 0; j < 9; j++ {
+			myGrid.grid[i][j] = *newCell()
+		}
+	}
+	return myGrid
+}
 
+// Get a cell at particular coordinates  
+func (myGrid *grid) getCell(rowNum int, colNum int) (*cell, error) {
+	if rowNum < 0 || colNum < 0 || rowNum >= 9 || colNum >= 9 {
+		return nil, fmt.Errorf("Tried to access out-of-bounds cell %d, %d",
+			rowNum, colNum)
+	}
+	return &myGrid.grid[rowNum][colNum], nil
+}
+
+// Set cell value at given coordinates
+func (myGrid *grid) setCellValue(rowNum int, colNum int, value uint) error {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	myCell.setValue(value, len(myGrid.triedCoords))
+	return err
+}
+
+// Get cell value at given coordinates
+func (myGrid *grid) getCellValue(rowNum int, colNum int) (uint, error) {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	return myCell.value, err
+}
+
+// Set the options the cell can be
+func (myGrid *grid) setCellOptions(rowNum int, colNum int, options bitarray) error {
+	myCell, err := myGrid.getCell(rowNum, colNum)
+	myCell.setOptions(options)
+	return err
+}
+
+// If a guess was wrong, undo all squares that depended on the guess
+func (myGrid *grid) reset(guess int) {
+	for _, row := range myGrid.grid {
+		for _, cell := range row {
+			cell.reset(guess)
+		}
+	}
+}
+
+// Set the options for a cell
+func (myGrid *grid) updateOptions(rowNum int, colNum int) {
+	options := allTrue()
+
+	// update within row
+	for _, myCell := range myGrid.grid[rowNum] {
+		if myCell.isKnown() {
+			options = setBitFalse(options, myCell.value)
+		}
+	}
+
+	// update within col
+	for _, row := range myGrid.grid {
+		myCell := row[colNum]
+		if myCell.isKnown() {
+			options = setBitFalse(options, myCell.value)
+		}
+	}
+
+	// update within block
+	blockRow := rowNum - (rowNum % 3)
+	blockCol := colNum - (colNum % 3)
+	for rowIndex := blockRow; rowIndex < blockRow + 3; rowIndex += 1 {
+		for colIndex := blockCol; colIndex < blockCol + 3; colIndex += 1 {
+			myCell, _ := myGrid.getCell(rowIndex, colIndex)
+			if myCell.isKnown() {
+				options = setBitFalse(options, myCell.value)
+			}
+		}
+	}
+
+	// update this cell
+	myCell, _ := myGrid.getCell(rowNum, colNum)
+	myCell.setOptions(options)
+}
+
+/*
+func (myGrid *Puzzle) String() string {
+	var box []string
+	for _, row := range myGrid.grid {
+		var rowValues []string
+		for _, col := range row {
+			rowValues = append(rowValues, col.String())
+		}
+		box = append(box, strings.Join(rowValues, ""))
+	}
+	return strings.Join(box, "\n")
+}
+
+/*
+func calcValueOptions(cells []Cell) (valueSet, error) {
+	var valueOptions valueSet
+	valueOptions = fullSet
+	for _, cell := range cells {
+		if cell.valueKnown {
+			valueOptions -= 1 << (uint(cell.value) - 1)
+		}
+	}
+	return valueOptions, nil
+}
 
 /*
 func (myGrid *Puzzle) updateRow(rowNum int) error {
@@ -200,6 +315,70 @@ func (myGrid *Puzzle) isComplete() (bool, error) {
 	return true, nil
 }
 
+func (myGrid *Puzzle) insertRow(rowNum int, row string) {
+	for colNum, char := range row {
+		value := int(char-'0')
+		if value != 0 {
+			myGrid.setValue(rowNum, colNum, value)
+		}
+	}
+}
+
+
+
+func isNumeric(row string) bool {
+	for _, char := range row {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func validateRowFormat(row string) error {
+	if !(isNumeric(row)) {
+		return fmt.Errorf("File contains non-numeric characters in row: ", row)
+	}
+
+	if len(row) != 9 {
+		return fmt.Errorf("Row does not contain 9 digits: ", row) 
+	}
+
+	return nil
+}
+
+func puzzleFromFile(filename string) *Puzzle {
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	myGrid := newPuzzle()
+	
+	scanner := bufio.NewScanner(file)
+	i := 0
+	for scanner.Scan() {
+		row := scanner.Text()
+		if i >= 9 {
+			log.Fatal("Files contains more than 9 rows.")
+		}
+		err := validateRowFormat(row)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		myGrid.insertRow(i, row)
+		i++
+	}
+	
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	myGrid.updateAll()
+	return myGrid
+}
 
 func main() {
 	sudokuFile := flag.String("filename", "", "File of sudoku puzzle to solve.")

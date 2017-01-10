@@ -62,7 +62,6 @@ func TestCellString(t *testing.T) {
 }
 
 func TestSetOptions(t *testing.T) {
-
 	var testCells = []struct {
 		cell cell
 		value uint
@@ -82,6 +81,29 @@ func TestSetOptions(t *testing.T) {
 		if got != expected {
 			t.Errorf("Expected %q set to %b but got %q.",
 				testCell.value, expected, got)
+		}
+	}
+}
+
+func TestIsKnown(t *testing.T) {
+	var testValues = []struct {
+		value uint
+		known bool
+	}{
+		{0, false},
+		{1, true},
+		{5, true},
+		{9, true},
+	}
+
+	for _, testValue := range testValues {
+		myCell := newCell()
+		myCell.setValue(testValue.value, 0)
+		got := myCell.isKnown()
+		expected := testValue.known
+		if got != expected {
+			t.Errorf("Set value to %q, expected isKnown %t but got %t",
+				testValue.value, expected, got)
 		}
 	}
 }

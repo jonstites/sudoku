@@ -53,7 +53,18 @@ func setBitTrue(myBits bitarray, value uint) bitarray {
 
 // Set value to false
 func setBitFalse(myBits bitarray, value uint) bitarray {
-	return myBits &^ newBitArray(value)
+	return myBits & bitNot(newBitArray(value))
+}
+
+// Set all true to false and all false to true
+func bitNot(myBits bitarray) bitarray {
+	newBits := newBitArray()
+	for i := uint(1); i <= 9; i++ {
+		if !myBits.valueTrue(i) {
+			newBits = setBitTrue(newBits, i)
+		}
+	}
+	return newBits
 }
 
 // A bitarray with everything set to true

@@ -34,7 +34,7 @@ func (myCell *cell) setTriedValue(value uint) {
 
 // Set cell options, excluding any previously-tried values
 func (myCell *cell) setOptions(options bitarray) {
-	myCell.options = options &^ myCell.tried
+	myCell.options = options & bitNot(myCell.tried)
 }
 
 // If the cell depended on an old guess, reset the cell
@@ -42,6 +42,11 @@ func (myCell *cell) reset(guess int) {
 	if myCell.guess <= guess {
 		myCell = newCell()
 	}
+}
+
+// Check if the cell value has been set
+func (myCell *cell) isKnown() bool {
+	return myCell.value != 0
 }
 
 // Print the value of a cell f
