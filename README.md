@@ -7,3 +7,4 @@ TODO:
 - make less complex
 - benchmark
 - support having multiple puzzles per file 
+- support writing directly to a file
