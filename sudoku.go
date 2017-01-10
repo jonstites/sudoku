@@ -77,7 +77,7 @@ func fillCell(myGrid *grid, tryCounter int) (int, error) {
 }
 
 // Fill in a grid
-func fillGrid(myGrid *grid, tryCounter int) error {
+func Solve(myGrid *grid, tryCounter int) error {
 	for !myGrid.isComplete() {
 		newCounter, err := fillCell(myGrid, tryCounter)
 		tryCounter = newCounter
@@ -93,14 +93,4 @@ func fillGrid(myGrid *grid, tryCounter int) error {
 }
 
 /*
-func main() {
-	sudokuFile := flag.String("filename", "", "File of sudoku puzzle to solve.")
-	flag.Parse()
-	myGrid := puzzleFromFile(*sudokuFile)
-	err := myGrid.fillAllCells()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(myGrid)
-}
 */

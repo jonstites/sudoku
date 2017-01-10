@@ -70,7 +70,7 @@ func TestMistakes(t *testing.T) {
 
 func TestSolve(t *testing.T) {
 	myGrid := newGrid()
-	err := fillGrid(myGrid, 0)
+	err := Solve(myGrid, 0)
 
 	if err != nil {
 		t.Error(err)
