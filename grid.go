@@ -126,6 +126,30 @@ func (myGrid *grid) isComplete() bool {
 	return true
 }
 
+// Check that the sudoku meets requirements
+func (myGrid *grid) isValid() bool {
+	for i := 0; i <= 8; i++ {
+		var rowSum uint
+		var colSum uint
+		var blockSum uint
+		for j := 0; j <= 8; j++ {
+			row, _ := myGrid.getCellValue(i, j)
+			rowSum += row
+			col, _ := myGrid.getCellValue(j, i)
+			colSum += col
+			blockRow := (j / 3) + 3 * (i % 3)
+			blockCol := (j % 3) + 3 * (i / 3)
+			block, _ := myGrid.getCellValue(blockRow, blockCol)
+			blockSum += block
+		}
+		if !((blockSum == rowSum) && (rowSum == colSum) && (colSum == uint(45))) {
+			return false
+		}
+	}
+	return true
+}
+
+
 // Overrwrite string option
 func (myGrid *grid) String() string {
 	var box []string

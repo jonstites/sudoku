@@ -76,44 +76,23 @@ func fillCell(myGrid *grid, tryCounter int) (int, error) {
 	return tryCounter, nil
 }
 
-
-
-/*
-func (myGrid *Puzzle) fillAllCells() error {
-	isComplete, err := myGrid.isComplete()
-	if err != nil {
-		return err
-	}
-	for !(isComplete) {
-		err := myGrid.fillOneCell() 
-		if err != nil {
-			return err
-		}
-		isComplete, err = myGrid.isComplete()
+// Fill in a grid
+func fillGrid(myGrid *grid, tryCounter int) error {
+	for !myGrid.isComplete() {
+		newCounter, err := fillCell(myGrid, tryCounter)
+		tryCounter = newCounter
 		if err != nil {
 			return err
 		}
 	}
-	isComplete, _ = myGrid.isComplete()
-	fmt.Println(isComplete)
+
+	if !myGrid.isValid() {
+		log.Fatal("Sudoku is not valid.") 
+	}
 	return nil
 }
 
-func (myGrid *Puzzle) isComplete() (bool, error) {
-	for _, row := range myGrid.puzzle {
-		for _, cell := range row {
-			if !cell.valueKnown {
-				return false, nil
-			}
-			if cell.value == 0 {
-				return false, fmt.Errorf("Error: Sudoku solution contains a zero.")
-			}
-		}
-	}
-	return true, nil
-}
-
-
+/*
 func main() {
 	sudokuFile := flag.String("filename", "", "File of sudoku puzzle to solve.")
 	flag.Parse()
