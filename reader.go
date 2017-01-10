@@ -16,16 +16,8 @@ func Read(filename string) *grid {
 		log.Fatal(err)
 	}
 	defer file.Close()
-
-	myGrid, err := fileToGrid(file)
-	
-	return myGrid
-}
-
-// Scan the file
-func fileToGrid(file *os.File) (*grid, error) {
 	myGrid := newGrid()
-	
+       
 	scanner := bufio.NewScanner(file)
 
 	cellsFilled := 0
@@ -33,14 +25,13 @@ func fileToGrid(file *os.File) (*grid, error) {
 		row := scanner.Text()
 
 		num := len(row)
-		if num != 9 && num != 81 {
-			
+		if (num != 9) && num != 81 {
+			log.Fatal("Invalid size row: ", num)
 		}
 		
 		if err := validateRow(row); err != nil {
 			log.Fatal(err)
 		}
-
 		insertRow(myGrid, cellsFilled, row)
 		cellsFilled += len(row)
 	}
@@ -48,16 +39,15 @@ func fileToGrid(file *os.File) (*grid, error) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	
-	return myGrid, nil
+
+	return myGrid
 }
 
 // Insert the characters into the puzzle
 func insertRow(myGrid *grid, cellsFilled int, row string) {
 	for colNum, char := range row {
-
 		// Throw error if too large
-		cellsFilled += 1
+
 		if cellsFilled > 81 {
 			log.Fatal("Puzzle has more than 81 squares.")
 		}
@@ -72,9 +62,13 @@ func insertRow(myGrid *grid, cellsFilled int, row string) {
 		if value != 0 {
 			myGrid.setCellValue(rowNum, colNum, value, 0)
 		} else {
-			cell, _ := myGrid.getCell(rowNum, colNum)
+			cell, err := myGrid.getCell(rowNum, colNum)
+			if err != nil {
+				log.Fatal(err)
+			}
 			cell.reset(0)
 		}
+		cellsFilled += 1
 	}
 }
 
